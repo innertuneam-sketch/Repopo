@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>מתח יומי 💪</title>
+  <meta name="description" content="תזכורת יומית חמודה לעשות מתח, עם משפטים מעודדים לאורך היום" />
+  <meta name="theme-color" content="#c9a6ff" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="מתח יומי" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="phone">
+    <!-- floating decorative blobs -->
+    <div class="blob blob-a" aria-hidden="true"></div>
+    <div class="blob blob-b" aria-hidden="true"></div>
+
+    <main id="app" class="app">
+      <!-- Screens are injected/toggled by app.js -->
+
+      <!-- ONBOARDING -->
+      <section class="screen" id="screen-onboarding" hidden>
+        <div class="hero-emoji">🌷</div>
+        <h1 class="title">בוקר טוב, יפה שלי</h1>
+        <p class="subtitle">
+          זו אפליקציה קטנה שתזכיר לך לעשות מתח פעם ביום —
+          בשעה שנוחה <b>לך</b>. עם קצת אהבה לאורך הדרך. 💛
+        </p>
+        <button class="btn btn-primary" id="btn-start">בואי נתחיל ✨</button>
+        <p class="hint" id="notif-hint">נבקש הרשאה להתראות כדי שנוכל להזכיר לך בעדינות.</p>
+      </section>
+
+      <!-- MORNING: pick a time -->
+      <section class="screen" id="screen-morning" hidden>
+        <div class="hero-emoji">☀️</div>
+        <h1 class="title" id="morning-greeting">בוקר טוב! ☀️</h1>
+        <p class="subtitle">מתי נוח לך לעשות מתח היום?</p>
+
+        <div class="time-card">
+          <label for="time-input" class="time-label">השעה שנבחר לך</label>
+          <input type="time" id="time-input" class="time-input" value="18:00" />
+          <div class="quick-times" id="quick-times">
+            <button class="chip" data-time="08:00">08:00</button>
+            <button class="chip" data-time="12:00">12:00</button>
+            <button class="chip" data-time="17:00">17:00</button>
+            <button class="chip" data-time="20:00">20:00</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" id="btn-set-time">קבעי לי תזכורת 💫</button>
+      </section>
+
+      <!-- WAITING: reminder is set, not done yet -->
+      <section class="screen" id="screen-waiting" hidden>
+        <div class="hero-emoji">🕒</div>
+        <h1 class="title">הכול מוכן 💛</h1>
+        <p class="subtitle">
+          התזכורת שלך להיום בשעה
+          <b><span id="scheduled-time">18:00</span></b>
+        </p>
+
+        <div class="countdown-card">
+          <span class="countdown-label">עוד</span>
+          <span class="countdown-value" id="countdown">—</span>
+          <span class="countdown-label">עד המתח 💪</span>
+        </div>
+
+        <div class="quote-card" id="quote-card">
+          <span class="quote-mark">“</span>
+          <p class="quote-text" id="quote-text">את מדהימה.</p>
+        </div>
+
+        <button class="btn btn-primary" id="btn-done-now">עשיתי עכשיו! ✅</button>
+        <button class="btn btn-ghost" id="btn-change-time">לשנות שעה</button>
+      </section>
+
+      <!-- DONE: celebration -->
+      <section class="screen" id="screen-done" hidden>
+        <div class="hero-emoji" id="done-emoji">🎉</div>
+        <h1 class="title">כל הכבוד!!</h1>
+        <p class="subtitle" id="done-subtitle">עשית את המתח של היום. אני גאה בך. 💛</p>
+
+        <div class="streak-card">
+          <div class="streak-flame">🔥</div>
+          <div class="streak-num" id="streak-num">1</div>
+          <div class="streak-label">ימים ברצף</div>
+        </div>
+
+        <div class="week-dots" id="week-dots" aria-label="שבעת הימים האחרונים"></div>
+
+        <div class="quote-card">
+          <span class="quote-mark">“</span>
+          <p class="quote-text" id="done-quote">מגיע לך הכול.</p>
+        </div>
+
+        <button class="btn btn-ghost" id="btn-undo">טעות, לא עשיתי עדיין</button>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <button class="footer-btn" id="btn-notif-test" title="בדיקת התראה">🔔 בדיקת התראה</button>
+      <span class="footer-dot">·</span>
+      <button class="footer-btn" id="btn-reset" title="איפוס">איפוס</button>
+    </footer>
+  </div>
+
+  <!-- toast -->
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

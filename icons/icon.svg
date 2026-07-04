@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffb3d1"/>
+      <stop offset="0.55" stop-color="#c9a6ff"/>
+      <stop offset="1" stop-color="#8ec5ff"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#fff6c9"/>
+      <stop offset="1" stop-color="#ffd76b"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+  <!-- soft sun -->
+  <circle cx="366" cy="150" r="58" fill="url(#sun)" opacity="0.95"/>
+  <!-- pull-up bar -->
+  <rect x="120" y="150" width="272" height="20" rx="10" fill="#ffffff" opacity="0.95"/>
+  <rect x="128" y="118" width="16" height="52" rx="8" fill="#ffffff" opacity="0.75"/>
+  <rect x="368" y="118" width="16" height="52" rx="8" fill="#ffffff" opacity="0.75"/>
+  <!-- little figure doing a pull-up -->
+  <g fill="none" stroke="#ffffff" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <!-- arms up to the bar -->
+    <path d="M214 172 L232 220"/>
+    <path d="M298 172 L280 220"/>
+    <!-- body -->
+    <path d="M256 232 L256 320"/>
+    <!-- legs slightly bent -->
+    <path d="M256 320 L228 372"/>
+    <path d="M256 320 L284 372"/>
+  </g>
+  <!-- head -->
+  <circle cx="256" cy="210" r="26" fill="#ffffff"/>
+  <!-- little heart -->
+  <path d="M256 430 c -10 -18 -40 -18 -40 8 c 0 20 30 36 40 44 c 10 -8 40 -24 40 -44 c 0 -26 -30 -26 -40 -8 z" fill="#ff7aa8"/>
+</svg>
