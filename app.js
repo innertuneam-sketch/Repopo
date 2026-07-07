@@ -109,6 +109,7 @@ function openSettings() {
       `<span class="slider"></span></span>`;
     list.appendChild(el);
   });
+  $('btn-settings-top').style.display = 'none';   // hide the gear while inside settings
   show('settings');
 }
 
@@ -401,6 +402,7 @@ function confetti() {
 // ---------- render / routing ----------
 function render() {
   recomputeStreak();
+  $('btn-settings-top').style.display = '';   // gear visible on all normal screens
   const day = today();
 
   if (!state.onboarded) {
@@ -501,7 +503,7 @@ function wire() {
   });
 
   // settings screen: open / close / toggle
-  $('btn-settings').addEventListener('click', openSettings);
+  $('btn-settings-top').addEventListener('click', openSettings);
   $('btn-settings-back').addEventListener('click', closeSettings);
   $('settings-list').addEventListener('change', async (e) => {
     const cb = e.target.closest('input[type="checkbox"]');

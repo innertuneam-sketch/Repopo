@@ -78,7 +78,7 @@ await page.click('#btn-notif-test', { force: true });
 await page.waitForTimeout(300);
 
 // --- settings screen ---
-await page.click('#btn-settings', { force: true });
+await page.click('#btn-settings-top', { force: true });
 await page.waitForTimeout(300);
 console.log('settings visible:', await visible('screen-settings'));
 const rowCount = await page.locator('#settings-list .set-row').count();

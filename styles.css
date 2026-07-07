@@ -310,6 +310,28 @@ body {
 .footer-btn:active { opacity: 1; }
 .footer-dot { color: var(--ink-soft); opacity: 0.4; }
 
+/* Prominent settings gear (top corner, always visible) */
+.gear-btn {
+  position: absolute;
+  top: calc(12px + env(safe-area-inset-top));
+  inset-inline-start: 14px;
+  z-index: 6;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 6px 18px rgba(180, 130, 200, 0.22);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+.gear-btn:active { transform: scale(0.92) rotate(30deg); }
+
 /* Settings */
 .settings-list {
   width: 100%;
