@@ -100,9 +100,22 @@
 
         <button class="btn btn-ghost" id="btn-undo">טעות, לא עשיתי עדיין</button>
       </section>
+
+      <!-- SETTINGS -->
+      <section class="screen" id="screen-settings" hidden>
+        <div class="hero-emoji">⚙️</div>
+        <h1 class="title">הגדרות</h1>
+        <p class="subtitle">בחרי אילו התראות לקבל 💛</p>
+
+        <div class="settings-list" id="settings-list"><!-- rows injected by app.js --></div>
+
+        <button class="btn btn-primary" id="btn-settings-back">חזרה ✨</button>
+      </section>
     </main>
 
     <footer class="footer">
+      <button class="footer-btn" id="btn-settings" title="הגדרות">⚙️ הגדרות</button>
+      <span class="footer-dot">·</span>
       <button class="footer-btn" id="btn-notif-test" title="בדיקת התראה">🔔 בדיקת התראה</button>
       <span class="footer-dot">·</span>
       <button class="footer-btn" id="btn-reset" title="איפוס">איפוס</button>

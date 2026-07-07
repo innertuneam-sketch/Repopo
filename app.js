@@ -5,34 +5,32 @@
 
 // ---------- cute copy ----------
 const MORNING_GREETINGS = [
-  'בוקר טוב, יפה שלי ☀️',
-  'בוקר אור, מותק 🌸',
-  'היי יפהפייה, בוקר טוב 💛',
-  'בוקר טוב לאהובה שלי 🌷',
-  'קמת? בוקר מהמם מחכה לך ✨',
+  'בוקר טוב יפה שלי 💛',
+  'בוקר אור חמודה 🤍',
+  'יום מקסים יסמיני 🩵',
+  'שיהיה לך יום נפלא וכיף ❤️',
 ];
 
 const ENCOURAGEMENTS = [
-  'את מדהימה, ואת אפילו לא יודעת כמה 💛',
-  'גוף חזק, ראש חזק — ואת שתיהן 💪',
-  'כל מתח קטן זה ניצחון גדול 🌟',
-  'אני גאה בך על כל צעד 🥹',
-  'תזכרי כמה את שווה היום ✨',
-  'מגיע לך רגע קטן בשבילך 🌸',
-  'את יכולה הכול, אחת אחת 🌈',
-  'חיוך אחד ממך מאיר לי את היום 😊',
-  'תנשמי עמוק, את בדיוק במקום הנכון 🍃',
-  'קצת תנועה = הרבה אנרגיה טובה ⚡',
-  'את הבחירה הכי טובה שלי 💗',
-  'תהיי גאה בעצמך היום, מגיע לך 👑',
+  'תמשיכי כמו שאת מתוקה ❤️',
+  'מקווה שעובר עלייך יום מקסים ונפלא!',
+  'תתפנקי לך על משהו כיף מותק',
+  'תניעי את הגוף ותעשי לך כיף 😘',
+  'אם היית בטיפוס יש לך יום חופש 😘',
+  'אם היית ביוגה אין לך יום חופש 😘',
+  'עוד מתח עוד כיף ליסמיני!',
+  'מה זה בכלל יום בלי מתח',
+  'תמשיכי ותהני מכל רגע 🩵',
 ];
 
 const DONE_LINES = [
-  'עשית את המתח של היום. אני גאה בך! 💛',
-  'איזו אלופה! המשכת את הרצף 🔥',
-  'הגוף שלך אומר לך תודה 🌟',
-  'עוד יום, עוד ניצחון קטן ומתוק 🌸',
-  'את פשוט מקור השראה 💪',
+  'שיוו איזה כיף שעשית!',
+  'יופי חיים שלי 🤍',
+  'את מעולה!!',
+  'איזה כיף שאת עושה לך טוב 😍',
+  'תמשיכי ככה מותק כל הכבוד',
+  'מדהימה מדהימה מדהימה!',
+  'הגב שלך מודה לך ✨️',
 ];
 
 const DONE_EMOJIS = ['🎉', '💪', '🌟', '🥳', '💛', '🌈'];
@@ -44,21 +42,32 @@ function todayKey(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
+const DEFAULT_NOTIFY = { morning: true, reminder: true, encourage: true };
+
 function loadState() {
+  let s;
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw);
+    if (raw) s = JSON.parse(raw);
   } catch (e) {}
-  return {
-    onboarded: false,
-    days: {},          // { 'YYYY-MM-DD': { time: '18:00', done: true } }
-    streak: 0,
-    longest: 0,
-    lastQuoteIdx: -1,
-  };
+  if (!s) {
+    s = {
+      onboarded: false,
+      days: {},          // { 'YYYY-MM-DD': { time: '18:00', done: true } }
+      streak: 0,
+      longest: 0,
+      lastQuoteIdx: -1,
+    };
+  }
+  // make sure the notification toggles exist (migrate older saved state)
+  s.notify = Object.assign({}, DEFAULT_NOTIFY, s.notify || {});
+  return s;
 }
 
 let state = loadState();
+
+// is a given notification type turned on?
+function notifyOn(key) { return state.notify[key] !== false; }
 
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
@@ -72,11 +81,38 @@ function today() {
 
 // ---------- helpers ----------
 const $ = (id) => document.getElementById(id);
-const screens = ['onboarding', 'morning', 'waiting', 'done'];
+const screens = ['onboarding', 'morning', 'waiting', 'done', 'settings'];
 
 function show(name) {
   screens.forEach((s) => { $(`screen-${s}`).hidden = s !== name; });
 }
+
+// ---------- settings screen ----------
+const NOTIFY_ROWS = [
+  { key: 'morning',   emoji: '☀️', title: 'ברכת בוקר',      desc: 'כל בוקר ב-8:00' },
+  { key: 'reminder',  emoji: '💪', title: 'תזכורת מתח',     desc: 'בשעה שבחרת' },
+  { key: 'encourage', emoji: '💗', title: 'משפט עידוד יומי', desc: 'מחשבה קטנה ומתוקה' },
+];
+
+function openSettings() {
+  const list = $('settings-list');
+  list.innerHTML = '';
+  NOTIFY_ROWS.forEach((row) => {
+    const on = notifyOn(row.key);
+    const el = document.createElement('label');
+    el.className = 'set-row';
+    el.innerHTML =
+      `<span class="set-emoji">${row.emoji}</span>` +
+      `<span class="set-text"><span class="set-title">${row.title}</span>` +
+      `<span class="set-desc">${row.desc}</span></span>` +
+      `<span class="switch"><input type="checkbox" data-key="${row.key}" ${on ? 'checked' : ''}>` +
+      `<span class="slider"></span></span>`;
+    list.appendChild(el);
+  });
+  show('settings');
+}
+
+function closeSettings() { render(); }
 
 function pick(arr, avoid = -1) {
   if (arr.length === 1) return 0;
@@ -194,14 +230,30 @@ async function notify(title, body, tag) {
 async function scheduleMorningDaily() {
   if (!isNative) return;
   try {
+    if (!notifyOn('morning')) {
+      await LN().cancel({ notifications: [{ id: NID.morning }] });
+      return;
+    }
     await LN().schedule({ notifications: [{
       id: NID.morning,
-      title: 'בוקר טוב, יפה שלי ☀️',
+      title: MORNING_GREETINGS[pick(MORNING_GREETINGS)],
       body: 'מתי נוח לך לעשות מתח היום? 💛',
       schedule: { on: { hour: 8, minute: 0 }, repeats: true, allowWhileIdle: true },
       smallIcon: 'ic_stat_icon',
     }]});
   } catch (e) {}
+}
+
+// Re-apply all notification schedules after a settings change.
+async function applyNotifySettings() {
+  if (isNative) {
+    try {
+      await scheduleMorningDaily();          // schedules or cancels morning
+      await scheduleTodayReminder();         // schedules or cancels reminder + encourage
+    } catch (e) {}
+  } else {
+    scheduleTodayReminder();                 // web timers respect the toggles
+  }
 }
 
 // In-session scheduling. Fires while the app is open or backgrounded.
@@ -223,13 +275,13 @@ async function scheduleTodayReminder() {
     const ln = LN();
     const day = today();
     try {
-      if (!day.time || day.done) {
-        await ln.cancel({ notifications: [{ id: NID.reminder }] });
-      } else {
+      const list = [];
+      // reminder at the chosen time (if enabled and still ahead today)
+      const wantReminder = notifyOn('reminder') && day.time && !day.done;
+      if (wantReminder) {
         const [h, m] = day.time.split(':').map(Number);
         const when = new Date();
         when.setHours(h, m, 0, 0);
-        const list = [];
         if (when > new Date()) {
           list.push({
             id: NID.reminder,
@@ -239,7 +291,11 @@ async function scheduleTodayReminder() {
             smallIcon: 'ic_stat_icon',
           });
         }
-        // a gentle encouragement every day at 13:00
+      } else {
+        await ln.cancel({ notifications: [{ id: NID.reminder }] });
+      }
+      // a gentle encouragement every day at 13:00 (if enabled)
+      if (notifyOn('encourage')) {
         list.push({
           id: NID.encourage,
           title: 'מחשבה קטנה 💗',
@@ -247,8 +303,10 @@ async function scheduleTodayReminder() {
           schedule: { on: { hour: 13, minute: 0 }, repeats: true },
           smallIcon: 'ic_stat_icon',
         });
-        if (list.length) await ln.schedule({ notifications: list });
+      } else {
+        await ln.cancel({ notifications: [{ id: NID.encourage }] });
       }
+      if (list.length) await ln.schedule({ notifications: list });
     } catch (e) {}
     return;
   }
@@ -261,19 +319,23 @@ async function scheduleTodayReminder() {
   const when = new Date();
   when.setHours(h, m, 0, 0);
 
-  scheduleAt(when, () => {
-    notify('הגיע הזמן למתח! 💪', 'רגע קטן בשבילך — קדימה, את יכולה! ✨', 'reminder');
-  });
+  if (notifyOn('reminder')) {
+    scheduleAt(when, () => {
+      notify('הגיע הזמן למתח! 💪', 'רגע קטן בשבילך — קדימה, את יכולה! ✨', 'reminder');
+    });
+  }
 
   // one gentle encouragement partway to the reminder
-  const now = Date.now();
-  const mid = new Date(now + (when.getTime() - now) * 0.5);
-  if (mid.getTime() > now + 60_000) {
-    scheduleAt(mid, () => {
-      const i = pick(ENCOURAGEMENTS, state.lastQuoteIdx);
-      state.lastQuoteIdx = i; save();
-      notify('מחשבה קטנה 💗', ENCOURAGEMENTS[i], 'encourage');
-    });
+  if (notifyOn('encourage')) {
+    const now = Date.now();
+    const mid = new Date(now + (when.getTime() - now) * 0.5);
+    if (mid.getTime() > now + 60_000) {
+      scheduleAt(mid, () => {
+        const i = pick(ENCOURAGEMENTS, state.lastQuoteIdx);
+        state.lastQuoteIdx = i; save();
+        notify('מחשבה קטנה 💗', ENCOURAGEMENTS[i], 'encourage');
+      });
+    }
   }
 }
 
@@ -428,6 +490,22 @@ function wire() {
     save();
     render();
     toast('אופסנו — התחלה חדשה 🌱');
+  });
+
+  // settings screen: open / close / toggle
+  $('btn-settings').addEventListener('click', openSettings);
+  $('btn-settings-back').addEventListener('click', closeSettings);
+  $('settings-list').addEventListener('change', async (e) => {
+    const cb = e.target.closest('input[type="checkbox"]');
+    if (!cb) return;
+    state.notify[cb.dataset.key] = cb.checked;
+    save();
+    if (cb.checked) {
+      const ok = await requestNotifications();
+      if (!ok) toast('כדי לקבל התראות צריך לאשר הרשאה 🔔');
+    }
+    await applyNotifySettings();
+    toast(cb.checked ? 'ההתראה הופעלה 🔔' : 'ההתראה כובתה 🔕');
   });
 
   // re-render when the user returns to the app (new day, time passed…)

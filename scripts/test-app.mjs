@@ -77,6 +77,22 @@ console.log('after reload, done still visible:', await visible('screen-done'));
 await page.click('#btn-notif-test', { force: true });
 await page.waitForTimeout(300);
 
+// --- settings screen ---
+await page.click('#btn-settings', { force: true });
+await page.waitForTimeout(300);
+console.log('settings visible:', await visible('screen-settings'));
+const rowCount = await page.locator('#settings-list .set-row').count();
+console.log('settings rows (expect 3):', rowCount);
+// toggle "morning" off (tap the row/slider, like a finger would)
+await page.locator('#settings-list .set-row').first().locator('.slider').click({ force: true });
+await page.waitForTimeout(200);
+const morningPref = await page.evaluate(() =>
+  JSON.parse(localStorage.getItem('mtachDaily.v1')).notify.morning);
+console.log('morning pref after toggle (expect false):', morningPref);
+await page.click('#btn-settings-back', { force: true });
+await page.waitForTimeout(200);
+console.log('back to app, settings hidden:', !(await visible('screen-settings')));
+
 console.log('CONSOLE ERRORS:', errors.length ? errors : 'none');
 
 await browser.close();
