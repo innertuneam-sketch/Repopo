@@ -26,20 +26,16 @@
       <!-- ONBOARDING -->
       <section class="screen" id="screen-onboarding" hidden>
         <div class="hero-emoji">🌷</div>
-        <h1 class="title">בוקר טוב, יפה שלי</h1>
-        <p class="subtitle">
-          זו אפליקציה קטנה שתזכיר לך לעשות מתח פעם ביום —
-          בשעה שנוחה <b>לך</b>. עם קצת אהבה לאורך הדרך. 💛
-        </p>
+        <h1 class="title" id="onb-title">בוקר טוב יפה שלי 💛</h1>
+        <p class="subtitle" id="onb-sub">תמשיכי כמו שאת מתוקה ❤️</p>
         <button class="btn btn-primary" id="btn-start">בואי נתחיל ✨</button>
-        <p class="hint" id="notif-hint">נבקש הרשאה להתראות כדי שנוכל להזכיר לך בעדינות.</p>
       </section>
 
       <!-- MORNING: pick a time -->
       <section class="screen" id="screen-morning" hidden>
         <div class="hero-emoji">☀️</div>
-        <h1 class="title" id="morning-greeting">בוקר טוב! ☀️</h1>
-        <p class="subtitle">מתי נוח לך לעשות מתח היום?</p>
+        <h1 class="title" id="morning-greeting">בוקר טוב יפה שלי 💛</h1>
+        <p class="subtitle" id="morning-sub">תמשיכי כמו שאת מתוקה ❤️</p>
 
         <div class="time-card">
           <label for="time-input" class="time-label">השעה שנבחר לך</label>
@@ -58,9 +54,8 @@
       <!-- WAITING: reminder is set, not done yet -->
       <section class="screen" id="screen-waiting" hidden>
         <div class="hero-emoji">🕒</div>
-        <h1 class="title">הכול מוכן 💛</h1>
+        <h1 class="title" id="waiting-title">תמשיכי כמו שאת מתוקה ❤️</h1>
         <p class="subtitle">
-          התזכורת שלך להיום בשעה
           <b><span id="scheduled-time">18:00</span></b>
         </p>
 
@@ -72,7 +67,7 @@
 
         <div class="quote-card" id="quote-card">
           <span class="quote-mark">“</span>
-          <p class="quote-text" id="quote-text">את מדהימה.</p>
+          <p class="quote-text" id="quote-text">תמשיכי כמו שאת מתוקה ❤️</p>
         </div>
 
         <button class="btn btn-primary" id="btn-done-now">עשיתי עכשיו! ✅</button>
@@ -82,8 +77,8 @@
       <!-- DONE: celebration -->
       <section class="screen" id="screen-done" hidden>
         <div class="hero-emoji" id="done-emoji">🎉</div>
-        <h1 class="title">כל הכבוד!!</h1>
-        <p class="subtitle" id="done-subtitle">עשית את המתח של היום. אני גאה בך. 💛</p>
+        <h1 class="title" id="done-title">מדהימה מדהימה מדהימה!</h1>
+        <p class="subtitle" id="done-subtitle">יופי חיים שלי 🤍</p>
 
         <div class="streak-card">
           <div class="streak-flame">🔥</div>
@@ -95,7 +90,7 @@
 
         <div class="quote-card">
           <span class="quote-mark">“</span>
-          <p class="quote-text" id="done-quote">מגיע לך הכול.</p>
+          <p class="quote-text" id="done-quote">יופי חיים שלי 🤍</p>
         </div>
 
         <button class="btn btn-ghost" id="btn-undo">טעות, לא עשיתי עדיין</button>

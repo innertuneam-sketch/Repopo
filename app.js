@@ -237,7 +237,7 @@ async function scheduleMorningDaily() {
     await LN().schedule({ notifications: [{
       id: NID.morning,
       title: MORNING_GREETINGS[pick(MORNING_GREETINGS)],
-      body: 'מתי נוח לך לעשות מתח היום? 💛',
+      body: '',
       schedule: { on: { hour: 8, minute: 0 }, repeats: true, allowWhileIdle: true },
       smallIcon: 'ic_stat_icon',
     }]});
@@ -285,8 +285,8 @@ async function scheduleTodayReminder() {
         if (when > new Date()) {
           list.push({
             id: NID.reminder,
-            title: 'הגיע הזמן למתח! 💪',
-            body: 'רגע קטן בשבילך — קדימה, את יכולה! ✨',
+            title: ENCOURAGEMENTS[pick(ENCOURAGEMENTS)],
+            body: '',
             schedule: { at: when, allowWhileIdle: true },
             smallIcon: 'ic_stat_icon',
           });
@@ -298,8 +298,8 @@ async function scheduleTodayReminder() {
       if (notifyOn('encourage')) {
         list.push({
           id: NID.encourage,
-          title: 'מחשבה קטנה 💗',
-          body: ENCOURAGEMENTS[pick(ENCOURAGEMENTS)],
+          title: ENCOURAGEMENTS[pick(ENCOURAGEMENTS)],
+          body: '',
           schedule: { on: { hour: 13, minute: 0 }, repeats: true },
           smallIcon: 'ic_stat_icon',
         });
@@ -321,7 +321,7 @@ async function scheduleTodayReminder() {
 
   if (notifyOn('reminder')) {
     scheduleAt(when, () => {
-      notify('הגיע הזמן למתח! 💪', 'רגע קטן בשבילך — קדימה, את יכולה! ✨', 'reminder');
+      notify(ENCOURAGEMENTS[pick(ENCOURAGEMENTS)], '', 'reminder');
     });
   }
 
@@ -333,7 +333,7 @@ async function scheduleTodayReminder() {
       scheduleAt(mid, () => {
         const i = pick(ENCOURAGEMENTS, state.lastQuoteIdx);
         state.lastQuoteIdx = i; save();
-        notify('מחשבה קטנה 💗', ENCOURAGEMENTS[i], 'encourage');
+        notify(ENCOURAGEMENTS[i], '', 'encourage');
       });
     }
   }
@@ -403,11 +403,17 @@ function render() {
   recomputeStreak();
   const day = today();
 
-  if (!state.onboarded) { show('onboarding'); return; }
+  if (!state.onboarded) {
+    show('onboarding');
+    $('onb-title').textContent = MORNING_GREETINGS[pick(MORNING_GREETINGS)];
+    $('onb-sub').textContent = ENCOURAGEMENTS[pick(ENCOURAGEMENTS)];
+    return;
+  }
 
   if (day.done) {
     show('done');
     $('done-emoji').textContent = DONE_EMOJIS[pick(DONE_EMOJIS)];
+    $('done-title').textContent = DONE_LINES[pick(DONE_LINES)];
     $('done-subtitle').textContent = DONE_LINES[pick(DONE_LINES)];
     $('done-quote').textContent = ENCOURAGEMENTS[pick(ENCOURAGEMENTS)];
     $('streak-num').textContent = state.streak;
@@ -417,6 +423,7 @@ function render() {
 
   if (day.time) {
     show('waiting');
+    $('waiting-title').textContent = ENCOURAGEMENTS[pick(ENCOURAGEMENTS)];
     $('scheduled-time').textContent = day.time;
     startCountdown();
     rotateQuote('quote-text');
@@ -427,6 +434,7 @@ function render() {
   // needs a time for today → morning screen
   show('morning');
   $('morning-greeting').textContent = MORNING_GREETINGS[pick(MORNING_GREETINGS)];
+  $('morning-sub').textContent = ENCOURAGEMENTS[pick(ENCOURAGEMENTS)];
   // default the picker to yesterday's time if we have one
   const prev = Object.values(state.days).reverse().find((d) => d.time);
   if (prev?.time) $('time-input').value = prev.time;
@@ -478,7 +486,7 @@ function wire() {
   $('btn-notif-test').addEventListener('click', async () => {
     const ok = await requestNotifications();
     if (!ok) { toast('ההתראות חסומות — צריך לאשר בהגדרות הדפדפן'); return; }
-    notify('הי מהאפליקציה 💛', 'ככה תיראה התזכורת שלך. את מהממת!', 'test');
+    notify(ENCOURAGEMENTS[pick(ENCOURAGEMENTS)], '', 'test');
     toast('שלחנו התראת בדיקה 🔔');
   });
 
@@ -523,7 +531,7 @@ function markDone() {
   clearTimers();
   if (isNative) { try { LN().cancel({ notifications: [{ id: NID.reminder }] }); } catch (e) {} }
   confetti();
-  notify('כל הכבוד! 🎉', `רצף של ${state.streak} ימים. גאה בך! 💛`, 'done');
+  notify(DONE_LINES[pick(DONE_LINES)], '', 'done');
   render();
 }
 
