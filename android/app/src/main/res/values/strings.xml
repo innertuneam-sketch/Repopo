@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">מתח יומי</string>
+    <string name="title_activity_main">מתח יומי</string>
+    <string name="package_name">com.innertune.mtachdaily</string>
+    <string name="custom_url_scheme">com.innertune.mtachdaily</string>
+</resources>

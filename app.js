@@ -125,11 +125,32 @@ function renderWeekDots(containerId) {
 }
 
 // ---------- notifications ----------
+// Runs both as a web PWA and as a native Android app (via Capacitor).
+// Native gets real scheduled local notifications that fire even when the
+// app is fully closed; the web build falls back to the Notification API.
+const Cap = window.Capacitor;
+const isNative = !!(Cap && typeof Cap.isNativePlatform === 'function' && Cap.isNativePlatform());
+const LN = () => Cap && Cap.Plugins && Cap.Plugins.LocalNotifications;
+
+// stable notification ids on native
+const NID = { morning: 1, encourage: 50, reminder: 100 };
+
 function canNotify() {
+  if (isNative) return true; // permission is checked async on native
   return 'Notification' in window && Notification.permission === 'granted';
 }
 
 async function requestNotifications() {
+  if (isNative) {
+    try {
+      const ln = LN();
+      let res = await ln.checkPermissions();
+      if (res.display !== 'granted') res = await ln.requestPermissions();
+      const granted = res.display === 'granted';
+      if (granted) await scheduleMorningDaily();
+      return granted;
+    } catch (e) { return false; }
+  }
   if (!('Notification' in window)) return false;
   if (Notification.permission === 'granted') return true;
   if (Notification.permission === 'denied') return false;
@@ -140,6 +161,17 @@ async function requestNotifications() {
 }
 
 async function notify(title, body, tag) {
+  if (isNative) {
+    try {
+      await LN().schedule({ notifications: [{
+        id: 2000 + Math.floor(Math.random() * 9000),
+        title, body,
+        schedule: { at: new Date(Date.now() + 400) },
+        smallIcon: 'ic_stat_icon',
+      }]});
+    } catch (e) {}
+    return;
+  }
   if (!canNotify()) return;
   const opts = {
     body,
@@ -158,6 +190,20 @@ async function notify(title, body, tag) {
   try { new Notification(title, opts); } catch (e) {}
 }
 
+// Native: a daily repeating "good morning" prompt to pick today's time.
+async function scheduleMorningDaily() {
+  if (!isNative) return;
+  try {
+    await LN().schedule({ notifications: [{
+      id: NID.morning,
+      title: 'בוקר טוב, יפה שלי ☀️',
+      body: 'מתי נוח לך לעשות מתח היום? 💛',
+      schedule: { on: { hour: 8, minute: 0 }, repeats: true, allowWhileIdle: true },
+      smallIcon: 'ic_stat_icon',
+    }]});
+  } catch (e) {}
+}
+
 // In-session scheduling. Fires while the app is open or backgrounded.
 // (For guaranteed delivery when the app is fully closed, a push server
 //  would be added later — see README.)
@@ -171,7 +217,42 @@ function scheduleAt(when, fn) {
   timers.push(setTimeout(fn, ms));
 }
 
-function scheduleTodayReminder() {
+async function scheduleTodayReminder() {
+  // Native: real OS-scheduled notifications (fire even when app is closed).
+  if (isNative) {
+    const ln = LN();
+    const day = today();
+    try {
+      if (!day.time || day.done) {
+        await ln.cancel({ notifications: [{ id: NID.reminder }] });
+      } else {
+        const [h, m] = day.time.split(':').map(Number);
+        const when = new Date();
+        when.setHours(h, m, 0, 0);
+        const list = [];
+        if (when > new Date()) {
+          list.push({
+            id: NID.reminder,
+            title: 'הגיע הזמן למתח! 💪',
+            body: 'רגע קטן בשבילך — קדימה, את יכולה! ✨',
+            schedule: { at: when, allowWhileIdle: true },
+            smallIcon: 'ic_stat_icon',
+          });
+        }
+        // a gentle encouragement every day at 13:00
+        list.push({
+          id: NID.encourage,
+          title: 'מחשבה קטנה 💗',
+          body: ENCOURAGEMENTS[pick(ENCOURAGEMENTS)],
+          schedule: { on: { hour: 13, minute: 0 }, repeats: true },
+          smallIcon: 'ic_stat_icon',
+        });
+        if (list.length) await ln.schedule({ notifications: list });
+      }
+    } catch (e) {}
+    return;
+  }
+
   clearTimers();
   const day = today();
   if (!day.time || day.done) return;
@@ -362,6 +443,7 @@ function markDone() {
   recomputeStreak();
   clearInterval(countdownTimer);
   clearTimers();
+  if (isNative) { try { LN().cancel({ notifications: [{ id: NID.reminder }] }); } catch (e) {} }
   confetti();
   notify('כל הכבוד! 🎉', `רצף של ${state.streak} ימים. גאה בך! 💛`, 'done');
   render();
@@ -372,7 +454,15 @@ function boot() {
   wire();
   render();
 
-  if ('serviceWorker' in navigator) {
+  if (isNative) {
+    // keep the daily morning prompt alive whenever notifications are allowed
+    (async () => {
+      try {
+        const res = await LN().checkPermissions();
+        if (res.display === 'granted') await scheduleMorningDaily();
+      } catch (e) {}
+    })();
+  } else if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 }

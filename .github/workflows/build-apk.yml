@@ -1,0 +1,77 @@
+name: בניית אפליקציית אנדרואיד (APK)
+
+# Builds the native Android APK on GitHub's servers (which have full network
+# access to the Android SDK) and publishes it as a downloadable release asset.
+
+on:
+  push:
+    branches:
+      - claude/stretch-reminder-app-uys2by
+      - main
+    paths-ignore:
+      - '**.md'
+  workflow_dispatch:   # allows building manually from the Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build web assets (www/)
+        run: node scripts/build-www.mjs
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Sync Capacitor
+        run: npx cap sync android
+
+      - name: Build debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Rename APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk mtach-yomi.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mtach-yomi-apk
+          path: mtach-yomi.apk
+
+      - name: Publish APK to a release
+        if: github.event_name != 'pull_request'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: app-latest
+          name: מתח יומי — האפליקציה להורדה
+          body: |
+            📱 **קובץ ההתקנה (APK) של "מתח יומי"**
+
+            להורדה: לחצו על `mtach-yomi.apk` למטה (מהטלפון).
+            לאחר ההורדה — לחצו על הקובץ, אשרו "התקנה ממקור לא ידוע", וזהו!
+
+            הקובץ מתעדכן אוטומטית בכל שינוי באפליקציה.
+          files: mtach-yomi.apk
+          make_latest: true

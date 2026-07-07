@@ -1,0 +1,15 @@
+{
+  "appId": "com.innertune.mtachdaily",
+  "appName": "מתח יומי",
+  "webDir": "www",
+  "backgroundColor": "#fdeff4",
+  "android": {
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_icon",
+      "iconColor": "#c9a6ff"
+    }
+  }
+}

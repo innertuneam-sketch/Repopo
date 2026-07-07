@@ -1,0 +1,15 @@
+{
+  "name": "mtach-daily",
+  "version": "1.0.0",
+  "private": true,
+  "description": "מתח יומי - daily pull-up reminder",
+  "scripts": {
+    "build:www": "node scripts/build-www.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/local-notifications": "^6.1.3"
+  }
+}
