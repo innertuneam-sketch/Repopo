@@ -355,6 +355,45 @@ body {
 .set-title { font-weight: 800; color: var(--ink); font-size: 1.02rem; }
 .set-desc { font-size: 0.82rem; color: var(--ink-soft); margin-top: 2px; }
 
+/* streak editor */
+.streak-editor {
+  width: 100%;
+  max-width: 340px;
+  background: linear-gradient(135deg, #fff2c9, #ffd9a8);
+  border-radius: 20px;
+  padding: 16px 18px;
+  box-shadow: 0 8px 22px rgba(180, 130, 200, 0.14);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.streak-editor-top { display: flex; align-items: center; gap: 8px; }
+.streak-editor-flame { font-size: 1.3rem; }
+.streak-editor-title { font-weight: 800; color: #b57327; font-size: 1.02rem; }
+.streak-stepper { display: flex; align-items: center; gap: 18px; }
+.step-btn {
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  font-size: 1.1rem;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(180, 130, 90, 0.25);
+  transition: transform 0.1s;
+}
+.step-btn:active { transform: scale(0.9); }
+.step-num {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: #e88b2a;
+  min-width: 1.6em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.streak-editor-note { margin: 0; font-size: 0.8rem; color: #b57327; text-align: center; }
+
 /* toggle switch */
 .switch { position: relative; width: 52px; height: 30px; flex: none; }
 .switch input { opacity: 0; width: 0; height: 0; position: absolute; }

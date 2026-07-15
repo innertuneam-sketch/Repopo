@@ -89,6 +89,18 @@ await page.waitForTimeout(200);
 const morningPref = await page.evaluate(() =>
   JSON.parse(localStorage.getItem('mtachDaily.v1')).notify.morning);
 console.log('morning pref after toggle (expect false):', morningPref);
+
+// streak editor: number starts at 1 (today done), +2 then -1 => 2
+const streakStart = await page.textContent('#streak-edit-num');
+console.log('streak editor start (expect 1):', streakStart);
+await page.click('#streak-plus', { force: true });
+await page.click('#streak-plus', { force: true });
+await page.click('#streak-minus', { force: true });
+await page.waitForTimeout(150);
+console.log('streak editor after +2 -1 (expect 2):', await page.textContent('#streak-edit-num'));
+const adj = await page.evaluate(() => JSON.parse(localStorage.getItem('mtachDaily.v1')).streakAdjust);
+console.log('streakAdjust persisted (expect 1):', adj);
+
 await page.click('#btn-settings-back', { force: true });
 await page.waitForTimeout(200);
 console.log('back to app, settings hidden:', !(await visible('screen-settings')));

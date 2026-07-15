@@ -38,8 +38,13 @@ const DONE_EMOJIS = ['🎉', '💪', '🌟', '🥳', '💛', '🌈'];
 // ---------- storage ----------
 const KEY = 'mtachDaily.v1';
 
+// The "day" rolls over at 04:00, not midnight — so a late-night stretch
+// (e.g. 00:30) still counts for the day that's ending, not the next one.
+const DAY_CUTOFF_HOUR = 4;
+
 function todayKey(d = new Date()) {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const s = new Date(d.getTime() - DAY_CUTOFF_HOUR * 3600 * 1000);
+  return `${s.getFullYear()}-${String(s.getMonth() + 1).padStart(2, '0')}-${String(s.getDate()).padStart(2, '0')}`;
 }
 
 const DEFAULT_NOTIFY = { morning: true, reminder: true, encourage: true };
@@ -57,10 +62,12 @@ function loadState() {
       streak: 0,
       longest: 0,
       lastQuoteIdx: -1,
+      streakAdjust: 0,   // manual correction added to the computed streak
     };
   }
   // make sure the notification toggles exist (migrate older saved state)
   s.notify = Object.assign({}, DEFAULT_NOTIFY, s.notify || {});
+  if (typeof s.streakAdjust !== 'number') s.streakAdjust = 0;
   return s;
 }
 
@@ -68,6 +75,9 @@ let state = loadState();
 
 // is a given notification type turned on?
 function notifyOn(key) { return state.notify[key] !== false; }
+
+// streak shown to the user = computed run + any manual correction
+function displayedStreak() { return Math.max(0, state.streak + (state.streakAdjust || 0)); }
 
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
@@ -109,11 +119,20 @@ function openSettings() {
       `<span class="slider"></span></span>`;
     list.appendChild(el);
   });
+  $('streak-edit-num').textContent = displayedStreak();
   $('btn-settings-top').style.display = 'none';   // hide the gear while inside settings
   show('settings');
 }
 
 function closeSettings() { render(); }
+
+// manual streak correction (restore / add / remove)
+function adjustStreak(delta) {
+  if (displayedStreak() + delta < 0) return;
+  state.streakAdjust = (state.streakAdjust || 0) + delta;
+  save();
+  $('streak-edit-num').textContent = displayedStreak();
+}
 
 function pick(arr, avoid = -1) {
   if (arr.length === 1) return 0;
@@ -418,7 +437,7 @@ function render() {
     $('done-title').textContent = DONE_LINES[pick(DONE_LINES)];
     $('done-subtitle').textContent = DONE_LINES[pick(DONE_LINES)];
     $('done-quote').textContent = ENCOURAGEMENTS[pick(ENCOURAGEMENTS)];
-    $('streak-num').textContent = state.streak;
+    $('streak-num').textContent = displayedStreak();
     renderWeekDots('week-dots');
     return;
   }
@@ -505,6 +524,8 @@ function wire() {
   // settings screen: open / close / toggle
   $('btn-settings-top').addEventListener('click', openSettings);
   $('btn-settings-back').addEventListener('click', closeSettings);
+  $('streak-plus').addEventListener('click', () => adjustStreak(1));
+  $('streak-minus').addEventListener('click', () => adjustStreak(-1));
   $('settings-list').addEventListener('change', async (e) => {
     const cb = e.target.closest('input[type="checkbox"]');
     if (!cb) return;
