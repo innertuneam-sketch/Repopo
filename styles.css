@@ -355,6 +355,20 @@ body {
 .set-title { font-weight: 800; color: var(--ink); font-size: 1.02rem; }
 .set-desc { font-size: 0.82rem; color: var(--ink-soft); margin-top: 2px; }
 
+/* streak pill on the main screens */
+.streak-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: linear-gradient(135deg, #fff2c9, #ffd9a8);
+  color: #b57327;
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 7px 16px;
+  border-radius: 999px;
+  box-shadow: 0 6px 16px rgba(180, 130, 90, 0.18);
+}
+
 /* streak editor */
 .streak-editor {
   width: 100%;
@@ -393,6 +407,21 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .streak-editor-note { margin: 0; font-size: 0.8rem; color: #b57327; text-align: center; }
+.btn-apply {
+  margin-top: 4px;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 30px;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  background: #e88b2a;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(180, 130, 90, 0.3);
+  transition: transform 0.1s;
+}
+.btn-apply:active { transform: scale(0.95); }
 
 /* toggle switch */
 .switch { position: relative; width: 52px; height: 30px; flex: none; }

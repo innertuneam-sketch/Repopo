@@ -42,9 +42,42 @@ const KEY = 'mtachDaily.v1';
 // (e.g. 00:30) still counts for the day that's ending, not the next one.
 const DAY_CUTOFF_HOUR = 4;
 
+function fmtDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function todayKey(d = new Date()) {
-  const s = new Date(d.getTime() - DAY_CUTOFF_HOUR * 3600 * 1000);
-  return `${s.getFullYear()}-${String(s.getMonth() + 1).padStart(2, '0')}-${String(s.getDate()).padStart(2, '0')}`;
+  return fmtDate(new Date(d.getTime() - DAY_CUTOFF_HOUR * 3600 * 1000));
+}
+
+// key for the logical day that is `n` days before today
+function keyDaysAgo(n) {
+  const d = new Date(Date.now() - DAY_CUTOFF_HOUR * 3600 * 1000);
+  d.setDate(d.getDate() - n);
+  return fmtDate(d);
+}
+
+function isDoneAgo(n) { return !!state.days[keyDaysAgo(n)]?.done; }
+function setDoneAgo(n, val) {
+  const k = keyDaysAgo(n);
+  state.days[k] = Object.assign({}, state.days[k], { done: val });
+}
+
+// Extend the current streak by marking one more earlier day done.
+function addStreakDay() {
+  let i = isDoneAgo(0) ? 0 : 1;     // anchor: today if done, else yesterday
+  while (isDoneAgo(i)) i++;         // walk to the first gap before the run
+  setDoneAgo(i, true);             // fill it → streak grows by one
+  save();
+}
+
+// Shorten the current streak by removing its earliest day.
+function removeStreakDay() {
+  let i = isDoneAgo(0) ? 0 : 1;
+  if (!isDoneAgo(i)) return;        // nothing to remove
+  while (isDoneAgo(i)) i++;
+  setDoneAgo(i - 1, false);        // clear the earliest done day of the run
+  save();
 }
 
 const DEFAULT_NOTIFY = { morning: true, reminder: true, encourage: true };
@@ -76,8 +109,17 @@ let state = loadState();
 // is a given notification type turned on?
 function notifyOn(key) { return state.notify[key] !== false; }
 
-// streak shown to the user = computed run + any manual correction
-function displayedStreak() { return Math.max(0, state.streak + (state.streakAdjust || 0)); }
+// streak shown to the user (now always the real computed run of done-days)
+function displayedStreak() { return state.streak; }
+
+// Migrate a v4-style numeric offset into real backfilled/removed days once.
+function migrateStreakAdjust() {
+  let n = state.streakAdjust || 0;
+  while (n > 0) { addStreakDay(); n--; }
+  while (n < 0) { removeStreakDay(); n++; }
+  state.streakAdjust = 0;
+  save();
+}
 
 function save() {
   try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
@@ -119,19 +161,22 @@ function openSettings() {
       `<span class="slider"></span></span>`;
     list.appendChild(el);
   });
-  $('streak-edit-num').textContent = displayedStreak();
+  $('streak-edit-num').textContent = state.streak;
   $('btn-settings-top').style.display = 'none';   // hide the gear while inside settings
+  // push a history entry so the phone's Back button returns here instead of exiting
+  if (history.state?.screen !== 'settings') history.pushState({ screen: 'settings' }, '');
   show('settings');
 }
 
 function closeSettings() { render(); }
 
-// manual streak correction (restore / add / remove)
+// manual streak correction — adds/removes real done-days so the streak
+// number, the week dots, and the main screen all stay in sync.
 function adjustStreak(delta) {
-  if (displayedStreak() + delta < 0) return;
-  state.streakAdjust = (state.streakAdjust || 0) + delta;
-  save();
-  $('streak-edit-num').textContent = displayedStreak();
+  if (delta > 0) addStreakDay();
+  else removeStreakDay();
+  recomputeStreak();
+  $('streak-edit-num').textContent = state.streak;
 }
 
 function pick(arr, avoid = -1) {
@@ -446,6 +491,7 @@ function render() {
     show('waiting');
     $('waiting-title').textContent = ENCOURAGEMENTS[pick(ENCOURAGEMENTS)];
     $('scheduled-time').textContent = day.time;
+    setStreakPill('waiting-streak');
     startCountdown();
     rotateQuote('quote-text');
     scheduleTodayReminder();
@@ -456,9 +502,23 @@ function render() {
   show('morning');
   $('morning-greeting').textContent = MORNING_GREETINGS[pick(MORNING_GREETINGS)];
   $('morning-sub').textContent = ENCOURAGEMENTS[pick(ENCOURAGEMENTS)];
+  setStreakPill('morning-streak');
   // default the picker to yesterday's time if we have one
   const prev = Object.values(state.days).reverse().find((d) => d.time);
   if (prev?.time) $('time-input').value = prev.time;
+}
+
+// small "🔥 N ימים ברצף" pill on the main screens (hidden when streak is 0)
+function setStreakPill(id) {
+  const el = $(id);
+  if (!el) return;
+  const n = state.streak;
+  if (n > 0) {
+    el.textContent = `🔥 ${n} ${n === 1 ? 'יום' : 'ימים'} ברצף`;
+    el.hidden = false;
+  } else {
+    el.hidden = true;
+  }
 }
 
 // ---------- events ----------
@@ -523,9 +583,17 @@ function wire() {
 
   // settings screen: open / close / toggle
   $('btn-settings-top').addEventListener('click', openSettings);
-  $('btn-settings-back').addEventListener('click', closeSettings);
+  // "back" and "עדכני" both leave settings via history so the phone's Back
+  // button behaves the same way (return to the main screen, not exit the app)
+  const leaveSettings = () => { if (history.state?.screen === 'settings') history.back(); else render(); };
+  $('btn-settings-back').addEventListener('click', leaveSettings);
+  $('btn-streak-apply').addEventListener('click', leaveSettings);
   $('streak-plus').addEventListener('click', () => adjustStreak(1));
   $('streak-minus').addEventListener('click', () => adjustStreak(-1));
+  // phone Back button (routed through history) closes settings instead of exiting
+  window.addEventListener('popstate', () => {
+    if (!$('screen-settings').hidden) closeSettings();
+  });
   $('settings-list').addEventListener('change', async (e) => {
     const cb = e.target.closest('input[type="checkbox"]');
     if (!cb) return;
@@ -560,6 +628,7 @@ function markDone() {
 
 // ---------- boot ----------
 function boot() {
+  if (state.streakAdjust) migrateStreakAdjust();   // convert any old offset to real days
   wire();
   render();
 

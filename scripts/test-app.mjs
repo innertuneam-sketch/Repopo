@@ -98,12 +98,27 @@ await page.click('#streak-plus', { force: true });
 await page.click('#streak-minus', { force: true });
 await page.waitForTimeout(150);
 console.log('streak editor after +2 -1 (expect 2):', await page.textContent('#streak-edit-num'));
-const adj = await page.evaluate(() => JSON.parse(localStorage.getItem('mtachDaily.v1')).streakAdjust);
-console.log('streakAdjust persisted (expect 1):', adj);
+const doneDays = await page.evaluate(() => {
+  const st = JSON.parse(localStorage.getItem('mtachDaily.v1'));
+  return Object.values(st.days).filter((d) => d.done).length;
+});
+console.log('real done-days after correction (expect 2):', doneDays);
 
-await page.click('#btn-settings-back', { force: true });
+// leave settings via the "עדכני" apply button (routes through history.back)
+await page.click('#btn-streak-apply', { force: true });
 await page.waitForTimeout(200);
 console.log('back to app, settings hidden:', !(await visible('screen-settings')));
+// on the done screen the corrected streak (2) should now show
+console.log('done streak-num reflects correction (expect 2):', await page.textContent('#streak-num'));
+
+// simulate the phone hardware Back button while in settings -> should return to app, not exit
+await page.click('#btn-settings-top', { force: true });
+await page.waitForTimeout(150);
+console.log('settings reopened:', await visible('screen-settings'));
+await page.goBack();
+await page.waitForTimeout(200);
+console.log('phone-back closed settings & stayed in app:',
+  !(await visible('screen-settings')) && (await visible('screen-done')));
 
 console.log('CONSOLE ERRORS:', errors.length ? errors : 'none');
 
